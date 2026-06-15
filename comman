@@ -1,0 +1,7 @@
+https://access.redhat.com/solutions/68996      to collect sosreport using the script. 
+ https://access.redhat.com/solutions/7061417  Configuring the image registry certificate
+
+- Please follow the doc to redeploy the worker node https://docs.redhat.com/en/documentation/openshift_container_platform/4.14/html-single/postinstallation_configuration/index#post-install-config-adding-fcos-compute
+
+
+https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/registry/setting-up-and-configuring-the-registry#configuring-registry-storage-baremetal
