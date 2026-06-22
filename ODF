@@ -14,3 +14,101 @@ Regards,
 Abhinav Bhatia
 Red Hat Global Support Services
 Reference Guide for Engaging with Red Hat Support: https://access.redhat.com/articles/280093
+==================================================================================================
+
+Can you please generate and upload an ODF mustgather?
+
+For your reference:
+
+Creating must-gather with more details for specific components in OCP 4
+https://access.redhat.com/solutions/5459251
+
+How to collect ODF must-gather data
+https://access.redhat.com/solutions/7068449
+
+Data Collection for Red Hat OpenShift Data Foundation(ODF)
+For ODF-4.13 and above (Rebase to RHEL9)
+
+Examples:
+
+$ oc adm must-gather --image=registry.redhat.io/odf4/odf-must-gather-rhel9:v4.13 --dest-dir=odf-<ddMM>
+
+example 1:
+
+$ oc adm must-gather --image=registry.redhat.io/odf4/odf-must-gather-rhel9:v4.13 --dest-dir=odf-1Jun
+
+example 2:
+
+$ oc adm must-gather --image=$(oc -n openshift-storage get deployment.apps/ocs-operator -o jsonpath='{.spec.template.metadata.annotations.operators\.openshift\.io/must-gather-image}') --dest-dir=.
+
+if the MG fails due to a timeout, increase the timeout, example:
+
+$ oc adm must-gather --image=registry.redhat.io/odf4/odf-must-gather-rhel9:v4.13 --dest-dir=odf-1Jun --request-timeout=2m 
+
+If the must-gather is unable to complete or takes too long, please run the below commands on your bastion or follow [3]:
+
+$ oc get nodes
+$ oc get co
+$ oc get clusterversion
+$ oc get backingstore -n openshift-storage
+$ oc get storagecluster -n openshift-storage -o yaml
+$ oc get csv -n openshift-storage
+$ oc get olm -n openshift-storage
+$ oc get pod -o wide -n openshift-storage
+$ oc get pvc -n openshift-storage
+$ oc get pv
+$ oc get sc
+$ oc get jobs -n openshift-storage
+$ oc get events --sort-by='.lastTimestamp' -n openshift-storage
+
+- Please follow KCS Solution:
+Ceph Support Data Collection. V14
+https://access.redhat.com/solutions/7112212
+to collect all the necessary Ceph Artifacts
+
+- or -
+
+If the rook-ceph-tools pod is installed, rsh into it and run the commands below or insert the commands into the oc command below. If the rook-ceph-tools pod is not installed, capture Ceph data, using [1], and provide the following:
+
+$ oc exec -n openshift-storage deployment/rook-ceph-tools -- <insert-ceph-command-here>
+
+$ ceph status
+$ ceph health detail
+$ ceph healthcheck history ls
+$ ceph osd df tree
+$ ceph osd tree
+$ ceph osd dump
+$ ceph osd dump | grep ratio
+$ ceph osd pool autoscale-status
+$ ceph df
+$ ceph df detail
+$ ceph crash ls
+$ ceph crash stat
+$ ceph osd perf
+$ ceph fs status
+$ ceph pg stat
+$ ceph time-sync-status
+$ ceph mds stat
+$ ceph config dump
+$ ceph versions
+$ ceph balancer status
+
+[1] Accessing the Red Hat Ceph Storage CLI in OpenShift Data Foundation 4.x
+https://access.redhat.com/articles/4870821
+- or -
+Configuring the Rook-Ceph Toolbox in OpenShift Data Foundation 4.x
+https://access.redhat.com/articles/4628891
+
+[3]
+Data gathering when oc adm must-gather fails
+https://access.redhat.com/articles/4971311
+
+[4]
+Capturing Data via CLI Terminal When The OpenShift Data Foundation Must-Gather Fails
+https://access.redhat.com/solutions/7083775
+
+Best regards.
+Tomas.
+oundation Must-Gather Fails
+https://access.redhat.com/solutions/7083775
+========================================================
