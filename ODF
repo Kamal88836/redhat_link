@@ -112,3 +112,11 @@ Tomas.
 oundation Must-Gather Fails
 https://access.redhat.com/solutions/7083775
 ========================================================
+Kindly refer to the KCS article below to install the ODF Operator, as it is responsible for creating and managing the service accounts used by the ODF deployments.
+
+Once the ODF Operator is installed successfully, the remaining ODF pods should begin coming up automatically.
+
+https://access.redhat.com/solutions/7020921 
+
+Note: Do not create a new storagesystem when install completes, the cluster already has one.
+==========================================================
