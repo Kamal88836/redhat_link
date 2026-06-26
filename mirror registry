@@ -3,3 +3,69 @@ Replacing SSL certificate for Mirror Registry for Red Hat OpenShift
 
 https://access.redhat.com/solutions/6980268
 ========================================================
+Phase 1: Generate a New Certificate on the Bastion Host
+Since the mirror registry is using a local self-signed certificate, a new certificate must be generated using OpenSSL. The certificate should include the Subject Alternative Name (SAN) field to ensure compatibility with OpenShift 4.
+
+Log in to the bastion host (bastion2025.lab.ocp.lan).
+
+Create the OpenSSL configuration file:
+
+cat <<EOF > quay-openssl.conf
+[req]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+C = US
+ST = VA
+L = New York
+O = Quay
+CN = bastion2025.lab.ocp.lan
+
+[v3_req]
+subjectAltName = DNS:bastion2025.lab.ocp.lan, IP:72.1.1.17
+EOF
+Generate a new certificate and key (valid for 10 years):
+openssl req -new -x509 -sha256 -nodes -days 3650 \
+  -keyout local-quay.key \
+  -out local-quay.crt \
+  -config quay-openssl.conf \
+  -extensions v3_req
+Phase 2: Update the Mirror Registry
+Apply the newly generated certificate to the mirror registry.
+
+Run the following command to update the existing mirror registry configuration:
+./mirror-registry install --init \
+  --ssl-cert local-quay.crt \
+  --ssl-key local-quay.key
+Note: This command automatically updates the registry configuration and restarts the Quay containers.
+
+Verify that the new certificate is being served:
+openssl s_client -connect bastion2025.lab.ocp.lan:8443 | openssl x509 -noout -enddate
+Phase 3: Update the OpenShift Clusters
+After the registry certificate has been updated, each OpenShift cluster must be configured to trust the new certificate.
+
+Create or update the trusted CA ConfigMap:
+oc create configmap mirror-registry-ca -n openshift-config \
+  --from-file=bastion2025.lab.ocp.lan..8443=local-quay.crt \
+  --dry-run=client -o yaml | oc apply -f -
+Configure the cluster to use the ConfigMap:
+oc patch image.config.openshift.io/cluster --type=merge \
+  -p '{"spec":{"additionalTrustedCA":{"name":"mirror-registry-ca"}}}'
+Monitor the rollout and wait until all MachineConfigPools show UPDATED=True:
+oc get machineconfigpool
+The Machine Config Operator (MCO) will distribute the updated trust bundle to all nodes.
+
+Once the above steps have been completed, please let us know the results. If you encounter any issues during the process, we will be happy to assist further.
+
+One Small Suggestion to Add:
+For the new cluster that the you are currently trying to create (the sno1 in the logs), you must also include the new local-quay.crt in install-config.yaml file under the additionalTrustBundle section before they start the installation. Otherwise, the new cluster will fail to pull the initial release images.
+
+  Example for the customer's install-config.yaml:
+
+   1 additionalTrustBundle: |
+   2   -----BEGIN CERTIFICATE-----
+   3   <Contents of local-quay.crt>
+   4   -----END CERTIFICATE-----
+=======================================================
