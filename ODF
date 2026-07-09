@@ -120,3 +120,18 @@ https://access.redhat.com/solutions/7020921
 
 Note: Do not create a new storagesystem when install completes, the cluster already has one.
 ==========================================================
+
+
+
+
+========================================
+To enable cephtoolbox 
+oc patch storageclusters.ocs.openshift.io ocs-storagecluster -n openshift-storage --type json --patch '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]
+
+===========================================
+At this time, it looks like you upgraded OCP many versions and forgot to upgrade ODF. Please utilize [1] or [2] to see if that can help. I also see that you are in a disconnected environment. If that is the case, you will need to follow [3] to mirror images before you apply [1] and [2]. Hope this helps and thank you
+
+[1] https://access.redhat.com/solutions/6972585
+[2] https://access.redhat.com/solutions/7020921
+
+[3] https://access.redhat.com/solutions/7128211
