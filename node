@@ -1,3 +1,6 @@
 Troubleshooting Red Hat OpenShift Container Platform 4: Node NotReady
 
 https://access.redhat.com/articles/5873322
+
+OCP 4 Node not ready after cluster upgrade or node restart
+https://access.redhat.com/solutions/5808731
