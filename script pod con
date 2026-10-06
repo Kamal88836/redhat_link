@@ -1,0 +1,35 @@
+numa-check.sh
+
+#!/bin/bash
+# Build a CPU -> NUMA map from sysfs
+declare -A NODE
+for d in /sys/devices/system/cpu/cpu[0-9]*; do
+  c=${d##*cpu}; n=$(ls -d $d/node* 2>/dev/null | head -1); NODE[$c]=${n##*node}
+done
+# Expand "2-5,58" into "2 3 4 5 58"
+expand() { local out=(); IFS=, read -ra parts <<< "$1"
+  for p in "${parts[@]}"; do
+    if [[ $p == *-* ]]; then for ((i=${p%-*}; i<=${p#*-}; i++)); do out+=($i); done; else out+=($p); fi
+  done; echo "${out[@]}"; }
+
+printf "%-14s %-6s %-5s %-22s %-28s %s\n" PLACEMENT CPUNUMA MEM CPUS CONTAINER NAMESPACE/POD
+for id in $(crictl ps -q); do
+  info=$(crictl inspect $id)
+  pid=$(jq -r .info.pid <<< "$info")
+  ns=$(jq -r '.status.labels["io.kubernetes.pod.namespace"]' <<< "$info")
+  pod=$(jq -r '.status.labels["io.kubernetes.pod.name"]' <<< "$info")
+  ctr=$(jq -r '.status.labels["io.kubernetes.container.name"]' <<< "$info")
+  cpus=$(awk '/Cpus_allowed_list/{print $2}' /proc/$pid/status 2>/dev/null)
+  mems=$(awk '/Mems_allowed_list/{print $2}' /proc/$pid/status 2>/dev/null)
+  [ -z "$cpus" ] && continue
+  numas=$(for c in $(expand "$cpus"); do echo ${NODE[$c]}; done | sort -u | paste -sd,)
+  if [[ $numas == *,* ]]; then place="shared-pool"; else place="PINNED-NUMA$numas"; fi
+  printf "%-14s %-6s %-5s %-22s %-28s %s\n" "$place" "$numas" "$mems" "$cpus" "$ctr" "$ns/$pod"
+done | sort
+
+
+
+
+
+oc debug node/ocp-cp-1.lab1.srib-lab-ocp.lan -- chroot /host bash -c "$(cat numa-check.sh)" 2>/dev/null \
+ | grep -E 'PLACEMENT|openshift-storage|bscf'
