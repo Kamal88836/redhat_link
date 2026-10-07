@@ -135,3 +135,8 @@ At this time, it looks like you upgraded OCP many versions and forgot to upgrade
 [2] https://access.redhat.com/solutions/7020921
 
 [3] https://access.redhat.com/solutions/7128211
+
+===============================================
+Capturing Data via CLI Terminal When The OpenShift Data Foundation Must-Gather Fails
+https://access.redhat.com/solutions/7083775
+===========================================
